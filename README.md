@@ -7,7 +7,7 @@ The scripts used for each section of the analysis are inside the directory `scri
 This README details the order in which to run each script, assuming that the user has access to a high-performance computing cluster and the data used in the project (not provided here).
 
 ## Data
-Unfortunately, due to privacy laws concerning the sharing of personally identifiable human data, we are unable to provide the KOBS cohort data on this repo.
+Unfortunately, due to privacy laws concerning the sharing of personally identifiable human data, we are unable to provide the KOBS, METSIM, and UKB cohort data on this repo. The GTEx, HPA, and WikiPathways data are freely available online as described below.
 
 ## Search for adipose-liver crosstalk using WGCNA
 
@@ -167,7 +167,7 @@ cd scripts/sbc_sirna
 qsub trim_reads.sh
 ```
 
-#### QC the raw and trimmed data
+### QC the raw and trimmed data
 QC script will generate a MultiQC HTML report that can be viewed in browser
 ```bash
 qsub qc_rawfastq.sh
@@ -246,10 +246,12 @@ Rscript expression_sanity_checks.R
 
 ## Run DE analysis on knockdown expression data
 
-### Download adipogenesis marker genes from wikipathways
+Download adipogenesis marker genes from wikipathways: 
 https://www.wikipathways.org/index.php/Pathway:WP236
-also download srebf1 pathway genes: https://www.wikipathways.org/index.php/Pathway:WP2706
+
+
 Use biomaRt to convert Entrez IDs to ensembl IDs
+
 ```
 Rscript convert_markergenes_to_ensembl.R
 Rscript convert_srebf1genes_to_ensembl.R
@@ -272,7 +274,7 @@ cd ../../
 Rscript generate_knockdown_plots.R
 ```
 
-# Correlate gene expression across adipose and liver to look for ligand-receptor interactions with the SBCs
+## Correlate gene expression across adipose and liver to look for ligand-receptor interactions with the SBCs
 ```bash
 cd scripts/wgcna_crosstalk
 Rscript correlate_sbcs_ligands.R 
@@ -281,7 +283,7 @@ Rscript get_ligand_cor_summarystats.R
 cd ../../
 ```
 
-# Run Mendelian Randomization to test for a causal effect of cis-regulatory SNPs for adipose aware DE genes on NAFLD
+## Run Mendelian Randomization to test for a causal effect of cis-regulatory SNPs for adipose aware DE genes on NAFLD
 
 ### Run MAGENTA tool to check for enrichment of GWAS hits in adipose aware DE genes
 To run this section:
@@ -308,7 +310,7 @@ Now, return to `scripts/magenta`
 Rscript collect_magenta_results.R
 ```
 
-## Forward MR direction: adipose IVs -> TG -> NAFLD
+### Forward MR direction: adipose IVs -> TG -> NAFLD
 
 ```
 cd scripts/nafld_mr
@@ -367,7 +369,7 @@ Rscript run_MendelianRandomization.R
 Rscript plot_vegfb_coloc_and_MR_effectsizes.R
 ```
 
-## Backward direction: liver IVs -> NAFLD -> TG
+### Backward direction: liver IVs -> NAFLD -> TG
 
 ### Break huge eqtl result file into small pieces for necessary genes
 ```bash
