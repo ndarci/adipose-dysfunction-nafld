@@ -396,6 +396,7 @@ qsub runPLINKldmatrix.sh b
 qsub run_cond_coloc_iv_regions.sh b
 ```
 
+No need to go any further because we observed 0 valid liver IVs at this point
 
 
 
