@@ -102,6 +102,11 @@ cd ../../
 After all of this, copy picardRNAmetrics_merged_kobs_liver_noMT.txt to `scripts/kobs_limmaVoom/data_liver`
 
 ### Set up the data for DE analysis
+
+```
+cd scripts/kobs_limmaVoom
+```
+
 Read in the GENCODE v26 .gtf file, convert it to a dataframe, and filter for our DE genes
 ```{bash}
 Rscript extractAnnotations.R
@@ -120,7 +125,7 @@ Rscript runLimmaVoom.R adipose
 Rscript runLimmaVoom.R liver
 ```
 
-### Overlap DE results with gene metadata to identify serum biomarker candidates (SBCs)
+## Select serum biomarker candidates (SBCs) from DE results
 Note: when dowloading PANTHER results, added header manually and copy-pasted to each file
 ```{bash}
 Rscript collectMetadata.R
@@ -137,49 +142,271 @@ Rscript plot_kobs_de.R
 Rscript runSBCcorrelation.R
 ```
 
-### Run best subsets analysis to find genes that predict steatosis and NASH
+## Run best subsets analysis
 After generating the models, validate their significance with a permutation test
 ```{bash}
 Rscript runBestSubsets.R
 Rscript permuteBestSubsets.R
 ```
 
-### Write a table for the supplement with relevant gene stats
+### Write supplemental tables with relevant gene stats from DE and best subsets
 ```bash
 Rscript write_supplement_table_kobsde.R
 Rscript write_supplement_table_bestsubsets.R
+cd ../../
 ```
 
+## Align and quantify gene expression data from siRNA knockdown experiment
 
+```
+cd scripts/sbc_sirna
+```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Correlate gene expression across adipose and liver to look for ligand-receptor interactions with the SBCs
-
+### Trim the raw data
 ```bash
+qsub trim_reads.sh
+```
+
+#### QC the raw and trimmed data
+QC script will generate a MultiQC HTML report that can be viewed in browser
+```bash
+qsub qc_rawfastq.sh
+```
+
+### Download reference genome and annotation
+Using main assembly files ("CHR") for GENCODE release 19/GRCh37
+```bash
+./download_refs.sh
+```
+
+### Map to the human genome (PASS 1)
+Pass 1 maps to existing transcripts
+
+#### Generate genome with STAR
+```bash
+qsub run_genomeGenerate.pass1.sh
+```
+
+#### Create key file
+The script needs to be pointed to the raw data directory to create a key file used throughout the downstream analysis
+```bash
+python3 get_seq_key.py
+```
+
+#### Align reads with STAR
+```bash
+qsub map.py 1
+```
+
+### Map to the human genome (PASS 2)
+Pass 2 adds new splice junctions present in the data to the reference and re-maps to that updated reference
+
+#### Generate new genome with STAR (including new SJs)
+```bash
+./collectSJ.sh
+qsub run_genomeGenerate.pass2.sh
+```
+
+#### Align reads to new genome with STAR (including new SJs)
+Only output uniquely mapped reads
+```bash
+qsub map.py 2
+qsub countMT.sh
+Rscript visualizeMT.R
+```
+
+#### Generate sorted versions of the alignments for downstream
+Can run these simultaneously
+```bash
+qsub coordinate_sort.sh
+qsub readName_sort.sh
+```
+
+### Get some QC stats with Picard CollectRNASeqMetrics and QoRT
+```bash
+qsub qc_qort.sh
+qsub run_picard.sample.sh
+```
+
+### Quantify expression with subread's featureCounts
+```bash
+qsub run_featureCounts.sh
+```
+
+### QC the entire mapping and quantification process at once
+```bash
+./multiqc_veryend.sh
+```
+
+### Check that the expression looks as expected
+```bash
+./extract_uniquely_mapped.sh
+Rscript expression_sanity_checks.R
+```
+
+## Run DE analysis on knockdown expression data
+
+### Download adipogenesis marker genes from wikipathways
+https://www.wikipathways.org/index.php/Pathway:WP236
+also download srebf1 pathway genes: https://www.wikipathways.org/index.php/Pathway:WP2706
+Use biomaRt to convert Entrez IDs to ensembl IDs
+```
+Rscript convert_markergenes_to_ensembl.R
+Rscript convert_srebf1genes_to_ensembl.R
+```
+
+### Run DE analysis between knockdown and controli at each timepoint separately
+```bash
+Rscript run_limmavoom_pertimepoint.R
+Rscript explore_de_pertimepoint_results.R
+```
+
+### Write out DE results in a nice table for supplement
+```bash
+Rscript write_supplement_table_knockdownde.R
+cd ../../
+```
+
+### Generate knockdown plots for the paper
+```bash
+Rscript generate_knockdown_plots.R
+```
+
+# Correlate gene expression across adipose and liver to look for ligand-receptor interactions with the SBCs
+```bash
+cd scripts/wgcna_crosstalk
 Rscript correlate_sbcs_ligands.R 
 Rscript explore_ligand_corrs.R 
 Rscript get_ligand_cor_summarystats.R
+cd ../../
 ```
 
-### Run MAGENTA tool to check for enrichment of gwas hits in correlated liver genes
+# Run Mendelian Randomization to test for a causal effect of cis-regulatory SNPs for adipose aware DE genes on NAFLD
+
+### Run MAGENTA tool to check for enrichment of GWAS hits in adipose aware DE genes
+To run this section:
+* Download MAGENTA from the Broad institute website
+* Move the MAGENTA folder inside `scripts`
+* Move run_magenta.sh into the MAGENTA folder with the MATLAB scripts
+
+```
+cd scripts/magenta
+```
+
 ```bash 
 ./prep_gwas_3cols.sh 
 Rscript format_magenta_geneset_entrez.R
+```
+
+Here, `cd` into the MAGENTA folder (will have a unique name based on version)
+```
 qsub run_magenta.sh
+```
+
+Now, return to `scripts/magenta`
+```
 Rscript collect_magenta_results.R
 ```
+
+## Forward MR direction: adipose IVs -> TG -> NAFLD
+
+```
+cd scripts/nafld_mr
+```
+
+### Break huge eqtl result file into small pieces for necessary genes
+```bash
+qsub generateGeneSpecificCisEQTLs.sh f
+```
+
+### Select candidate regions for IV SNPs
+```bash
+Rscript select_iv_snp_set.R f
+```
+
+### Get FPKMs for candidate region genes
+```bash
+qsub generate_iv_region_fpkm.sh f
+```
+
+### Set up LD matrix for conditional coloc
+```bash
+qsub runPLINKldmatrix.sh f
+```
+
+### Run conditional coloc on every candidate IV region
+```bash
+qsub run_cond_coloc_iv_regions.sh f
+```
+
+### Prune IV candidates based on LD and output the final list for MR
+```bash
+Rscript generate_iv_nafldhit_snplist.R
+./calculate_ld_ivs_nafldvars.sh
+Rscript ld_prune_ivs.R
+```
+
+### Get ready for the actual MR analysis by collecting and formatting data
+```bash
+./extract_ivs_nafldgwas.sh
+Rscript prep_mr_inputs.R
+```
+
+### Run MR method 1: MR-PRESSO
+```
+Rscript run_mrpresso.R
+```
+
+### Run MR methods 2-4 with MendelianRandomization
+```
+Rscript run_MendelianRandomization.R
+```
+
+### Make a nice plot of colocalized VEGFB region above MR effect size plot
+```
+Rscript plot_vegfb_coloc_and_MR_effectsizes.R
+```
+
+## Backward direction: liver IVs -> NAFLD -> TG
+
+### Break huge eqtl result file into small pieces for necessary genes
+```bash
+qsub generateGeneSpecificCisEQTLs.sh b
+```
+
+### Select candidate regions for IV SNPs
+```bash
+Rscript select_iv_snp_set.R b
+```
+
+### Get FPKMs for candidate region genes
+```bash
+qsub generate_iv_region_fpkm.sh b
+```
+
+### Set up LD matrix for conditional coloc
+```bash
+qsub runPLINKldmatrix.sh b
+```
+
+### Run conditional coloc on every candidate IV region
+```bash
+qsub run_cond_coloc_iv_regions.sh b
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
