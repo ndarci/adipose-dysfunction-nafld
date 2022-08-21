@@ -266,21 +266,12 @@ Rscript explore_de_pertimepoint_results.R
 ### Write out DE results in a nice table for supplement
 ```bash
 Rscript write_supplement_table_knockdownde.R
-cd ../../
 ```
 
 ### Generate knockdown plots for the paper
 ```bash
 Rscript generate_knockdown_plots.R
-```
-
-## Correlate gene expression across adipose and liver to look for ligand-receptor interactions with the SBCs
-```bash
-cd scripts/wgcna_crosstalk
-Rscript correlate_sbcs_ligands.R 
-Rscript explore_ligand_corrs.R 
-Rscript get_ligand_cor_summarystats.R
-cd ../../
+../../
 ```
 
 ## Run Mendelian Randomization to test for a causal effect of cis-regulatory SNPs for adipose aware DE genes on NAFLD
