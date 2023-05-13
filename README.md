@@ -1,6 +1,6 @@
 # Cross-tissue omics analysis discovers adipose genes encoding secreted proteins in obesity-related non-alcoholic fatty liver disease
 
-This repo contains the code used for computational data analysis in Darci-Maher et al. 2022.
+This repo contains the code used for computational data analysis in Darci-Maher et al. 2023, published in eBioMedicine in June 2023.
 
 The scripts used for each section of the analysis are inside the directory `scripts`, each with their own sub-directory. 
 
