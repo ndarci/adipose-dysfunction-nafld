@@ -17,17 +17,27 @@ annot = read.table("/u/project/pajukant/nikodm/kobs_limmaVoom/data/gencodeV26_an
 a.moduleassign = merge(a.moduleassign, annot[,c('gene_id', 'gene_name')], by = 'gene_id', all.x = T)
 l.moduleassign = merge(l.moduleassign, annot[,c('gene_id', 'gene_name')], by = 'gene_id', all.x = T)
 
-# save gene lists for xtissue modules
-for (row in seq(1, nrow(sig.pairs))) {
-  a.xtissuemodule = substring(sig.pairs$adipose[row], 5)
-  l.xtissuemodule = substring(sig.pairs$liver[row], 5)
-  a.xtissuegenes = a.moduleassign[a.moduleassign$adipose_module == a.xtissuemodule,]$gene_id
-  l.xtissuegenes = l.moduleassign[l.moduleassign$liver_module == l.xtissuemodule,]$gene_id
-  write.table(a.xtissuegenes, paste0("../../data/adipose_module_genes_A_", a.xtissuemodule, ".txt"), quote = F, row.names = F, col.names = F)
-  write.table(l.xtissuegenes, paste0("../../data/liver_module_genes_L_", l.xtissuemodule, ".txt"), quote = F, row.names = F, col.names = F)
+# # save gene lists for xtissue modules
+# for (row in seq(1, nrow(sig.pairs))) {
+#   a.xtissuemodule = substring(sig.pairs$adipose[row], 5)
+#   l.xtissuemodule = substring(sig.pairs$liver[row], 5)
+#   a.xtissuegenes = a.moduleassign[a.moduleassign$adipose_module == a.xtissuemodule,]$gene_id
+#   l.xtissuegenes = l.moduleassign[l.moduleassign$liver_module == l.xtissuemodule,]$gene_id
+#   write.table(a.xtissuegenes, paste0("../../data/adipose_module_genes_A_", a.xtissuemodule, ".txt"), quote = F, row.names = F, col.names = F)
+#   write.table(l.xtissuegenes, paste0("../../data/liver_module_genes_L_", l.xtissuemodule, ".txt"), quote = F, row.names = F, col.names = F)
+# }
+# # save gene list for statin correlated module
+# write.table(l.moduleassign[l.moduleassign$liver_module == 'steelblue',]$gene_id, '../../data/liver_module_genes_L_steelblue.txt', quote = F, row.names = F, col.names = F)
+
+# save gene lists for ALL modules (plugs into webgestalt)
+for (module in a.modNames) {
+  membergenes = a.moduleassign[a.moduleassign$adipose_module == module,]$gene_id
+  write.table(membergenes, paste0("../../data/adipose_module_genes_A_", module, ".txt"), quote = F, row.names = F, col.names = F)
 }
-# save gene list for statin correlated module
-write.table(l.moduleassign[l.moduleassign$liver_module == 'steelblue',]$gene_id, '../../data/liver_module_genes_L_steelblue.txt', quote = F, row.names = F, col.names = F)
+for (module in l.modNames) {
+  membergenes = l.moduleassign[l.moduleassign$liver_module == module,]$gene_id
+  write.table(membergenes, paste0("../../data/liver_module_genes_L_", module, ".txt"), quote = F, row.names = F, col.names = F)
+}
 
 # check module membership of cool pathway genes
 get_module_mem <- function(genelist, tissuecode, module) {

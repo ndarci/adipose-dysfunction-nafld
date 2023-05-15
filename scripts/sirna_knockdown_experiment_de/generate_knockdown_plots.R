@@ -12,6 +12,9 @@ upcolor = 'dodgerblue2'
 downcolor = 'indianred2'
 nonsigcolor = 'grey'
 controlcolor = 'grey33'
+
+lineplotkdcolor = 'deeppink'
+
 theme_set(theme_bw())
 
 # plot logFC of DE genes at each timepoint
@@ -161,17 +164,20 @@ for (kd in c('CCDC80', 'SOD3')) {
 			by.x = c('Timepoint', 'Condition', 'exprgene'), 
 			by.y = c('timepoint', 'knockdown', 'gene_name'), all.x = T)
 
-	# define color for each line corresponding to direction of that gene on most important day
-	gene_color = ovsub[ovsub$Timepoint == coolday,]
-	gene_color['colorcode'] = as.numeric(gene_color$logFC > 0)
-	# set knocked down gene to a different color
-	gene_color[gene_color$exprgene == kd & gene_color$Condition == kd, 'colorcode'] <- 3
-	# set non-significant to a different color
-	gene_color[is.na(gene_color$colorcode), 'colorcode'] <- 2
-	# merge color info back onto data table
-	ovsub = merge(ovsub, gene_color[,c('Condition', 'exprgene', 'colorcode')], 
-					by = c('Condition', 'exprgene'))
-	ovsub['colorcode'] = factor(ovsub$colorcode)
+	# # define color for each line corresponding to direction of that gene on most important day
+	# gene_color = ovsub[ovsub$Timepoint == coolday,]
+	# gene_color['colorcode'] = as.numeric(gene_color$logFC > 0)
+	# # set knocked down gene to a different color
+	# gene_color[gene_color$exprgene == kd & gene_color$Condition == kd, 'colorcode'] <- 3
+	# # set non-significant to a different color
+	# gene_color[is.na(gene_color$colorcode), 'colorcode'] <- 2
+	# # merge color info back onto data table
+	# ovsub = merge(ovsub, gene_color[,c('Condition', 'exprgene', 'colorcode')], 
+	# 				by = c('Condition', 'exprgene'))
+
+	# define color for KD vs scramble
+	ovsub['colorcode'] = ovsub$Condition == 'Controli'
+	ovsub['colorcode'] = factor(as.numeric(ovsub$colorcode))
 
 	# put p-values for each DE test in a plottable format
 	anno_df = ovsub %>% group_by(exprgene, Timepoint) %>%
@@ -210,12 +216,15 @@ for (kd in c('CCDC80', 'SOD3')) {
 						y = meanCPM,
 						color = colorcode,
 						group = Condition)) + 
-			scale_color_manual(breaks = c('3', '2', '1', '0'),
-								labels = c(paste0(kd, ' KD  '),
-											'Scramble',
-											paste0('Up in ', kd, ' KD  '), 
-											paste0('Down in ', kd, ' KD  ')),
-								values = c(kdcolor, controlcolor, upcolor, downcolor)) +
+			# scale_color_manual(breaks = c('3', '2', '1', '0'),
+			# 					labels = c(paste0(kd, ' KD  '),
+			# 								'Scramble',
+			# 								paste0('Up in ', kd, ' KD  '), 
+			# 								paste0('Down in ', kd, ' KD  ')),
+			# 					values = c(kdcolor, controlcolor, upcolor, downcolor)) +
+			scale_color_manual(breaks = c('0', '1'),
+							labels = c(paste0(kd, ' KD   '), 'Scramble'),
+							values = c(lineplotkdcolor, controlcolor)) +
 			facet_grid(exprgene~., scales = 'free_y') +
 			geom_errorbar(aes(ymin = barlo, ymax = barhi), width = 0, alpha = 0.5) +
 			geom_line() +

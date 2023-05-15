@@ -3,7 +3,7 @@
 #$ -cwd
 #$ -j y
 #$ -pe shared 12
-#$ -l h_data=4000M,h_rt=9:00:00
+#$ -l h_data=4000M,h_rt=3:00:00
 #$ -v QQAPP=openmp
 #$ -v LD_LIBRARY_PATH
 #$ -v PYTHON_LIB

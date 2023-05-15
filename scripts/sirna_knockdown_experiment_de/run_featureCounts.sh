@@ -15,7 +15,7 @@ touch data/merged_sample_paths.txt
 ls data/aligned/pass2/*/*.readNameSorted.bam > data/merged_sample_paths.txt
 
 samplefile="data/merged_sample_paths.txt"
-gtf="data/gencode.v19.annotation.gtf"
+gtf="/u/project/pajukant/nikodm/sbc_sirna/data/gencode.v19.annotation.gtf"
 outdir="data/featureCounts/"
 out="${outdir}/gencode19.featureCounts.txt"
 mkdir -p $outdir

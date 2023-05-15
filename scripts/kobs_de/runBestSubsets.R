@@ -10,14 +10,14 @@ library(precrec)
 
 prepDataframe <- function(phenotype, gene_ID, gene_symbol, expr0, covSub) {
   # merge on sample ID
-  expr_sub <- expr0[,gene_ID]
+  expr_sub <- expr0[,gene_ID, drop = F]
   ov = merge(expr_sub, covSub, by = 0, all = F)
 
   ov = na.omit(ov)
   phe = ov[,paste0(phenotype, "_grp")]
 
   # get expression data with rows matched to sample ID
-  expr = ov[,2:(1+length(gene_ID))]
+  expr = ov[,2:(1+length(gene_ID)), drop = F]
   colnames(expr) <- gene_symbol
 
   # INT the expression data
@@ -83,6 +83,8 @@ runLeaps <- function(phenotype, gene_ID, gene_symbol, expr0, covSub, precorrect,
                                 ngenes_in_model = length(ingenes) - 1 - length(forcedidx),
                                 auc = auc,
                                 bic = bic)
+  } else {
+    logistic_result = NULL
   }
 
   return(list(linear = bs, logistic = logistic_result))
@@ -155,6 +157,13 @@ for (pheno in c("steatosis", "fibrosis", "diagnosis")) {
     sbcSub = sbcSub[!(sbcSub$gene_ID %in% sbc[sbc$phenotype == "diagnosis",]$gene_ID),]
   }
   
+  # before running best subsets, save off some prepped data tables for vegfb logistic model work (part of MR stuff)
+  vegfb_logmod_data = prepDataframe(pheno, c("ENSG00000173511"), c("VEGFB"), cpm, covSub)
+  vegfb_logmod_df = vegfb_logmod_data$ov 
+  colnames(vegfb_logmod_df)[2] = "VEGFB"
+  vegfb_logmod_df["VEGFB_INT"] = vegfb_logmod_data$exprINT
+  write.table(vegfb_logmod_df, paste0("../../data/vegfb_logisticmodel_data_", pheno, ".txt"), row.names = F)
+
   # run best subsets (pre-correct for covariates)
   leaps_out = runLeaps(pheno, sbcSub$gene_ID, sbcSub$gene_symbol, cpm, covSub, precorrect = T, forcedidx = c())
   leaps_df = leapsToDataframe(leaps_out$linear)

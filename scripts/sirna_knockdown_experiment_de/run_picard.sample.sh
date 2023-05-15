@@ -44,7 +44,7 @@ for i in $( seq $start $stop ); do
 
         java -Xmx16g -jar $picard CollectRnaSeqMetrics \
         I=$ibam \
-        REF_FLAT=data/refFlat.txt.gz \
+        REF_FLAT=/u/project/pajukant/nikodm/sbc_sirna/data/refFlat.txt.gz \
         STRAND=NONE \
         O=$out
 done

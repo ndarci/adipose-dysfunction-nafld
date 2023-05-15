@@ -6,21 +6,20 @@
 #$ -v QQAPP=openmp
 #$ -m n
 #$ -r n
-#$ -o run_genomeGenerate.pass1.sh.log
+#$ -o run_genomeGenerate.pass2.sh.log
 
 star="/u/project/pajukant/nikodm/bulk_practice_METSIM/bin/STAR-2.5.2b/bin/Linux_x86_64/STAR"
 
-refFasta="../../data/GRCh37.primary_assembly.genome.fa"
-gencodeAnno="../../data/gencode.v19.annotation.gtf"
+refFasta="/u/project/pajukant/nikodm/sbc_sirna/data/GRCh37.primary_assembly.genome.fa"
+gencodeAnno="/u/project/pajukant/nikodm/sbc_sirna/data/gencode.v19.annotation.gtf"
 rlMinusOne=85
-genomedir="../../data/genome_for_pass1"
+genomedir="../../data/genome_for_pass2"
 mkdir -p $genomedir
-
-rm -rf ${genomedir}/*
 
 $star --runMode genomeGenerate \
   --runThreadN 12 \
   --genomeDir $genomedir \
   --genomeFastaFiles $refFasta \
   --sjdbGTFfile $gencodeAnno \
+  --sjdbFileChrStartEnd ${genomedir}/all.SJ.out \
   --sjdbOverhang $rlMinusOne

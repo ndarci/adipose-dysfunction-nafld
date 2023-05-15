@@ -8,7 +8,8 @@ annot = read.table("/u/project/pajukant/nikodm/kobs_limmaVoom/data/gencodeV26_an
 
 # iterate over all cool modules
 for (thing in list(c('Adipose', 'lightyellow'), c('Adipose', 'cyan'),
-				c('Liver', 'saddlebrown'))) {
+				c('Liver', 'saddlebrown'), c('Adipose', 'lavenderblush3'),
+				c('Adipose', 'brown'), c('Liver', 'cyan'), c('Liver', 'tan'))) {
 
 	# get relevant strings to access each object
 	tissue = thing[[1]]

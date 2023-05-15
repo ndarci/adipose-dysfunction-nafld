@@ -29,17 +29,27 @@ def isr1(x, r = ["R1_0", "R1001", "_1.fastq"]):
             return True
     return False
 
-def isr2(x, r = ["R2_0", "R2001", "_2.fastq"]):
-    for i in r:
-        if i in x:
-            return True
-    return False
+# def isr2(x, r = ["R2_0", "R2001", "_2.fastq"]):
+#     for i in r:
+#         if i in x:
+#             return True
+#     return False
 
-fastq_dir = "/u/project/pajukant/nikodm/sbc_sirna/data/fastq/"
+# fastq_dir = "/u/project/pajukant/nikodm/sbc_sirna/data/fastq/"
+
+# first argument is the path to the fastq directory
+fastq_dir = sys.argv[1]
+# second argument determines whether we want the raw or trimmed files
+# if second argument is "raw", we want the raw files
+raw = sys.argv[2] == 'raw'
 
 samples = os.listdir(fastq_dir)
 
-ofs = open("../../data/sample_fastq.txt", 'w')
+if (raw == False):
+    sample_file_name = "../../data/sample_fastq.txt"
+else:
+    sample_file_name = "../../data/sample_fastq_raw.txt"
+ofs = open(sample_file_name, 'w')
 ofs.write("\t".join(["sample", "path"]) + "\n")
 
 for sample in samples:
@@ -49,7 +59,10 @@ for sample in samples:
         if (len(fastqs) == 0):
             continue
         f1files = sorted([x for x in fastqs if isr1(x)])
-        f1files = [x for x in f1files if "trimmed" in x]
+        if (raw == False):
+            f1files = [x for x in f1files if "trimmed" in x]
+        else:
+            f1files = [x for x in f1files if "trimmed" not in x]
         #f2files = sorted([x for x in fastqs if isr2(x)])
         #if (len(f1files) != len(f2files)):
         #    print("Number of R1 fastq files doesn't match number of R2 fastq files")

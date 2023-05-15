@@ -28,5 +28,5 @@ contam=${polya}${r1adapt}
 			--output $fastqout \
 			$fastq
 	done
-} < ../../data/sample_fastq.txt
+} < ../../data/sample_fastq_raw.txt
 

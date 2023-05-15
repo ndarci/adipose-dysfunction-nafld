@@ -101,12 +101,49 @@ liverCov <- merge(liverCov, liverpic, by = "sample")
 # paste STAR QC metrics onto this table
 liverCov <- merge(liverCov, liverSTAR, by = "sample", how = "left")
 
+# run a t-test making sure BMI (and logBMI) isn't a significant 
+# factor in any of our DE groups
+cov$logBMI = log(cov$BMI)
+
+histgroups = c('steatosis_grp', 'fibrosis_grp', 'diagnosis_grp')
+bmi_ttest_stats = data.frame(matrix(NA, nrow = 2*length(histgroups), ncol = 4))
+names(bmi_ttest_stats) = c('DE_group', 'pheno', 't_statistic', 'p.value')
+# iterate over all the DE groups
+i=1
+j=1
+while (i <= nrow(bmi_ttest_stats)) {
+    histgroup = histgroups[j]
+    # select the relevant columns and drop NAs (individuals excluded from control group)
+    cov_ttest = na.omit(cov[,c(histgroup, 'BMI', 'logBMI')])
+
+    # run the t-test for BMI
+    ttestbmi = t.test(cov_ttest[cov_ttest[,histgroup] == T,]$BMI,
+                    cov_ttest[cov_ttest[,histgroup] == F,]$BMI)
+    # extract relevant stats and put them in the output df
+    ttestresult = c(histgroup, 'BMI',
+                    as.numeric(ttestbmi$statistic), 
+                    as.numeric(ttestbmi$p.value))
+    bmi_ttest_stats[i,] = ttestresult
+    i = i+1
+
+    # run the t-test again for logBMI
+    ttestlogbmi = t.test(cov_ttest[cov_ttest[,histgroup] == T,]$logBMI,
+                    cov_ttest[cov_ttest[,histgroup] == F,]$logBMI)
+    # extract relevant stats and put them in the output df
+    ttestlogresult = c(histgroup, 'logBMI',
+                    as.numeric(ttestlogbmi$statistic), 
+                    as.numeric(ttestlogbmi$p.value))
+    bmi_ttest_stats[i,] = ttestlogresult
+    i = i+1
+    j = j+1
+}
+
 # write files out
 write.csv(pheno, file = "../../data/pheno.csv")
 write.csv(cov, file = "../../data/cov.csv")
 write.csv(liverCov, file = "../../data_liver/cov_liver.csv")
 
-
+write.table(bmi_ttest_stats, '../../data/bmi_ttest_degroups.txt', row.names = F)
 
 
 
