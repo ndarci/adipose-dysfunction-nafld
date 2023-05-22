@@ -10,9 +10,7 @@ This README details the order in which to run each script, assuming that the use
 
 
 # Data
-Unfortunately, due to privacy laws concerning the sharing of personally identifiable human data, we are unable to provide the KOBS, METSIM, or UKB cohort data on this repo. The GTEx, HPA, and WikiPathways data are freely available online as described in the manuscript data sharing statement.
-
-
+Unfortunately, due to privacy laws, we are unable to provide the KOBS, METSIM, or UK Biobank cohort data on this repo. The GTEx, HPA, and WikiPathways data are freely available online as described in the manuscript data sharing statement.
 
 
 # Figures 
